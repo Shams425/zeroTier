@@ -1,0 +1,393 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetKeep — MikroTik ZeroTier Deployments</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <script src="config.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800 antialiased">
+
+    <nav class="bg-slate-900 text-white p-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="router" class="text-sky-400 w-6 h-6"></i>
+                <span class="text-xl font-bold tracking-wide">NetKeep <span
+                        class="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded ml-2">ZeroTier
+                        Edition</span></span>
+            </div>
+            <div class="text-sm text-gray-400" id="connection-status">
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>Connected to Cloud
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
+                <div class="flex items-center space-x-2 mb-6">
+                    <i data-lucide="plus-circle" class="text-sky-600 w-5 h-5"></i>
+                    <h2 class="text-lg font-semibold text-gray-900">Add New MikroTik</h2>
+                </div>
+
+                <form id="router-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Network
+                            Owner Name</label>
+                        <input type="text" id="ownerName" required placeholder="e.g., Cafe Central"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Owner
+                            Phone Number</label>
+                        <input type="tel" id="ownerPhone" placeholder="e.g., +12345678"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">MikroTik
+                                Type</label>
+                            <input type="text" id="mikrotikType" placeholder="hAP ax2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">ZeroTier
+                                IP</label>
+                            <input type="text" id="ztIp" required placeholder="10.147.x.x"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">ZeroTier
+                            Email Account</label>
+                        <input type="email" id="ztEmail" placeholder="zt@email.com"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Username</label>
+                            <input type="text" id="mtUser" placeholder="admin"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Password</label>
+                            <input type="password" id="mtPass" placeholder="••••••••"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Notes</label>
+                        <textarea id="notes" rows="2"
+                            placeholder="Voucher configurations, specific custom ports, etc..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky"></textarea>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm flex items-center justify-center space-x-2 transition duration-150">
+                        <span>Save Device</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-3">
+                    <div class="p-2 bg-sky-50 text-sky-600 rounded-lg"><i data-lucide="server"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium uppercase">Total Routers</p>
+                        <p class="text-xl font-bold" id="stat-total">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="globe"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium uppercase">Status</p>
+                        <p class="text-xl font-bold text-emerald-600">Online</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-4 h-4"></i>
+                    <input type="text" id="search-input" placeholder="Search by owner, IP, or type..."
+                        class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                </div>
+                <button id="toggle-passwords"
+                    class="text-xs text-slate-600 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center space-x-1">
+                    <i data-lucide="eye" class="w-4 h-4"></i> <span>Show Sensitive Data</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                <th class="p-4">Owner / Client</th>
+                                <th class="p-4">Device Info</th>
+                                <th class="p-4">ZeroTier IP</th>
+                                <th class="p-4">Credentials</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="router-table-body" class="divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                <div id="empty-state"
+                    class="hidden p-8 text-center text-gray-400 flex flex-col items-center justify-center space-y-2">
+                    <i data-lucide="folder-open" class="w-12 h-12 text-gray-300"></i>
+                    <p>No MikroTik records found.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="src/database.js"></script>
+    <script src="src/app.js"></script>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetKeep — MikroTik ZeroTier Deployments</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/assets/css/style.css">
+
+    <script src="config.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800 antialiased">
+
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center border border-gray-100">
+            <div id="loader-spinner" class="space-y-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-sky-500 border-t-transparent mx-auto">
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Connecting to Cloud Database...</h3>
+                <p class="text-sm text-gray-500">Verifying security credentials and syncing configurations.</p>
+            </div>
+
+            <div id="loader-fail-actions" class="hidden space-y-4">
+                <div
+                    class="p-3 bg-amber-50 text-amber-700 rounded-full w-12 h-12 flex items-center justify-center mx-auto">
+                    <i data-lucide="cloud-off" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Cloud Connection Timed Out</h3>
+                <p class="text-sm text-gray-500">We couldn't reach your Supabase instance. Would you like to retry or
+                    switch to localized safe-mode storage?</p>
+                <div class="flex items-center justify-center space-x-3 pt-2">
+                    <button id="btn-retry-conn"
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">
+                        Retry Connection
+                    </button>
+                    <button id="btn-go-offline"
+                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
+                        Continue Offline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bg-slate-900 text-white p-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="router" class="text-sky-400 w-6 h-6"></i>
+                <span class="text-xl font-bold tracking-wide">NetKeep <span
+                        class="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded ml-2">ZeroTier
+                        Edition</span></span>
+            </div>
+            <div class="text-sm text-gray-400" id="connection-status">
+                <span id="status-dot" class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
+                <span id="status-text">Checking Cloud Link...</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
+                <div class="flex items-center space-x-2 mb-6">
+                    <i data-lucide="plus-circle" class="text-sky-600 w-5 h-5"></i>
+                    <h2 class="text-lg font-semibold text-gray-900">Add New MikroTik</h2>
+                </div>
+
+                <form id="router-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Network
+                            Owner Name</label>
+                        <input type="text" id="ownerName" required placeholder="e.g., Cafe Central"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Owner
+                            Phone Number</label>
+                        <input type="tel" id="ownerPhone" placeholder="e.g., +12345678"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">MikroTik
+                                Type</label>
+                            <input type="text" id="mikrotikType" placeholder="hAP ax2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">ZeroTier
+                                IP</label>
+                            <input type="text" id="ztIp" required placeholder="10.147.x.x"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">ZeroTier
+                            Email Account</label>
+                        <input type="email" id="ztEmail" placeholder="zt@email.com"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Username</label>
+                            <input type="text" id="mtUser" placeholder="admin"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Password</label>
+                            <input type="password" id="mtPass" placeholder="••••••••"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Notes</label>
+                        <textarea id="notes" rows="2"
+                            placeholder="Voucher configurations, specific custom ports, etc..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky"></textarea>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm flex items-center justify-center space-x-2 transition duration-150">
+                        <span>Save Device</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-3">
+                    <div class="p-2 bg-sky-50 text-sky-600 rounded-lg"><i data-lucide="server"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium uppercase">Total Routers</p>
+                        <p class="text-xl font-bold" id="stat-total">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="globe"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium uppercase">Storage Target</p>
+                        <p class="text-base font-bold" id="storage-mode-text">Syncing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-4 h-4"></i>
+                    <input type="text" id="search-input" placeholder="Search by owner, IP, or type..."
+                        class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus-ring-sky">
+                </div>
+                <button id="toggle-passwords"
+                    class="text-xs text-slate-600 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center space-x-1">
+                    <i data-lucide="eye" class="w-4 h-4"></i> <span>Show Sensitive Data</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                <th class="p-4">Owner / Client</th>
+                                <th class="p-4">Device Info</th>
+                                <th class="p-4">ZeroTier IP</th>
+                                <th class="p-4">Credentials</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="router-table-body" class="divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+                <div id="empty-state"
+                    class="hidden p-8 text-center text-gray-400 flex flex-col items-center justify-center space-y-2">
+                    <i data-lucide="folder-open" class="w-12 h-12 text-gray-300"></i>
+                    <p>No MikroTik records found.</p>
+                </div>
+            </div>
+        </div>
+        <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
+        <div id="delete-modal"
+            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-gray-100 transform scale-95 opacity-0 transition-all duration-200"
+                id="delete-modal-box">
+                <div
+                    class="p-3 bg-rose-50 text-rose-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="trash-2" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Remove Device?</h3>
+                <p class="text-sm text-gray-500 mt-1">Are you sure you want to delete this MikroTik entry? This
+                    deployment data cannot be recovered.</p>
+
+                <div class="flex items-center justify-center space-x-3 pt-5">
+                    <button id="modal-cancel-btn"
+                        class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition">
+                        Cancel
+                    </button>
+                    <button id="modal-confirm-btn"
+                        class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-xl transition shadow-sm">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/src/database.js"></script>
+    <script src="/src/app.js"></script>
+</body>
+
+</html>
